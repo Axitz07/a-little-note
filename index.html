@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday, Awaa</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #030305;
+            --bg-glass: rgba(15, 15, 20, 0.45);
+            --text-main: #f4f4f5;
+            --text-muted: #8a8a93;
+            --accent-silver: #e4e4e7;
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --glow-subtle: 0 0 25px rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            cursor: url("data:image/svg+xml,%3Csvg width='16' height='16' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='8' cy='8' r='3' fill='%23e4e4e7'/%3E%3C/svg%3E") 8 8, auto;
+        }
+
+        a, button, .envelope-wrapper {
+            cursor: url("data:image/svg+xml,%3Csvg width='16' height='16' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='8' cy='8' r='4' fill='%23ffffff'/%3E%3C/svg%3E") 8 8, pointer !important;
+        }
+
+        h1, h2, h3, .serif {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 400;
+        }
+
+        .text-glow { text-shadow: var(--glow-subtle); }
+
+        /* Cinematic Noise Overlay */
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        #star-canvas, #confetti-canvas, #visualizer-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+        }
+
+        #star-canvas { z-index: 0; }
+        #confetti-canvas { z-index: 50; }
+        
+        /* Audio Visualizer Canvas */
+        #visualizer-canvas {
+            top: auto;
+            bottom: 0;
+            height: 80px;
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+        #visualizer-canvas.active { opacity: 0.35; }
+
+        /* Ambient glowing orbs */
+        .ambient-glow {
+            position: fixed;
+            width: 40vw; height: 40vw;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.025) 0%, rgba(0,0,0,0) 70%);
+            top: 20%; left: 10%;
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(40px);
+            animation: drift 20s infinite alternate ease-in-out;
+        }
+        
+        .ambient-glow.two {
+            top: auto; bottom: -10%; left: auto; right: 5%;
+            width: 50vw; height: 50vw;
+            animation: drift 25s infinite alternate-reverse ease-in-out;
+        }
+
+        @keyframes drift {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, -50px) scale(1.1); }
+        }
+
+        #opening-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100dvh;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 100;
+            background-color: var(--bg-color);
+            transition: opacity 1.5s ease, visibility 1.5s ease;
+        }
+
+        .envelope-wrapper {
+            position: relative; width: 320px; height: 200px;
+            transition: transform 0.4s ease;
+        }
+        .envelope-wrapper:hover { transform: translateY(-5px); }
+        .envelope-wrapper.is-opening { pointer-events: none; }
+        .envelope-wrapper.fade-out { opacity: 0; transform: scale(1.1); transition: all 1.5s ease; }
+
+        .envelope {
+            position: relative; width: 100%; height: 100%;
+            background: #111114;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 4px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8), var(--glow-subtle);
+            perspective: 1000px;
+        }
+
+        .envelope::before, .envelope::after {
+            content: ''; position: absolute; bottom: 0; width: 50%; height: 100%;
+            background: #151518; border-top: 1px solid rgba(255,255,255,0.05); z-index: 3;
+        }
+        .envelope::before { left: 0; clip-path: polygon(0 0, 100% 50%, 100% 100%, 0 100%); border-right: 1px solid rgba(255,255,255,0.02); }
+        .envelope::after { right: 0; clip-path: polygon(100% 0, 0 50%, 0 100%, 100% 100%); border-left: 1px solid rgba(255,255,255,0.02); }
+
+        .flap {
+            position: absolute; top: 0; left: 0; width: 100%; height: 60%;
+            background: #1a1a1e;
+            clip-path: polygon(0 0, 100% 0, 50% 100%);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transform-origin: top;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 4;
+        }
+        .envelope-wrapper.is-opening .flap { transform: rotateX(180deg); z-index: 1; }
+
+        .letter {
+            position: absolute; bottom: 5px; left: 5%; width: 90%; height: 90%;
+            background: #1c1c20; border: 1px solid var(--border-glass); border-radius: 2px;
+            z-index: 2; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: 0.6s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .envelope-wrapper.is-opening .letter { transform: translateY(-80px); }
+
+        .letter p { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--accent-silver); letter-spacing: 0.1em; font-style: italic; }
+        .letter h3 { font-size: 2.2rem; color: #fff; letter-spacing: 0.2em; margin-top: 0.2rem; }
+        .micro-text { font-size: 0.45rem; letter-spacing: 0.35em; color: #666; margin-top: 10px; text-transform: uppercase; font-family: 'Montserrat', sans-serif; }
+
+        .seal {
+            position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%);
+            width: 60px; height: 60px; background: #25252b; border: 1px solid #444; border-radius: 50%;
+            z-index: 5; display: flex; justify-content: center; align-items: center;
+            color: var(--text-main); font-family: 'Montserrat', sans-serif; font-size: 0.7rem; letter-spacing: 0.2em;
+            text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.05);
+            transition: all 0.3s ease; animation: pulse-seal 2s infinite alternate;
+        }
+        .envelope-wrapper:hover .seal { background: #2a2a30; border-color: #666; animation: none; box-shadow: 0 0 20px rgba(255,255,255,0.1); }
+        .envelope-wrapper.is-opening .seal { opacity: 0; transform: translate(-50%, -50%) scale(0.5); transition: all 0.4s ease; }
+
+        @keyframes pulse-seal { 0% { box-shadow: 0 0 0 rgba(255,255,255,0); } 100% { box-shadow: 0 0 15px rgba(255,255,255,0.05); } }
+
+        .scroll-indicator {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center;
+            opacity: 0; visibility: hidden; transition: opacity 1s ease; z-index: 20;
+            color: var(--text-muted); font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+        }
+        .scroll-indicator.visible { opacity: 1; visibility: visible; }
+        .scroll-arrow { width: 1px; height: 40px; background: linear-gradient(to bottom, var(--text-muted), transparent); margin-top: 10px; animation: scroll-down 1.5s infinite; }
+        @keyframes scroll-down { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(15px); opacity: 0; } }
+
+        #main-content {
+            position: relative; z-index: 10; opacity: 0; visibility: hidden; transition: opacity 2s ease-in-out 0.5s;
+        }
+        #main-content.visible { opacity: 1; visibility: visible; }
+
+        section {
+            min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 4rem 1.5rem; max-width: 800px; margin: 0 auto;
+        }
+
+        .reveal {
+            opacity: 0; transform: translateY(40px) scale(0.98); filter: blur(5px);
+            transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1), transform 1.2s cubic-bezier(0.25, 1, 0.5, 1), filter 1.2s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+
+        .message-text { font-size: 1.05rem; line-height: 2.2; color: var(--accent-silver); text-align: left; max-width: 600px; font-weight: 300; }
+        .message-text p { margin-bottom: 2rem; position: relative; }
+
+        /* Poem Section with Dynamic Spotlight Glassmorphism */
+        .poem-container {
+            position: relative;
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            padding: 4rem 3rem; border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+            max-width: 600px; width: 100%;
+            animation: float-subtle 6s ease-in-out infinite;
+            overflow: hidden; /* For spotlight containment */
+        }
+        
+        /* The Dynamic Spotlight effect */
+        .poem-container::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.08), transparent 40%);
+            z-index: -1; pointer-events: none; opacity: 0; transition: opacity 0.5s ease;
+        }
+        .poem-container:hover::before, .poem-container:active::before { opacity: 1; }
+
+        @keyframes float-subtle { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+
+        .poem-title { font-size: 2rem; margin-bottom: 2.5rem; text-align: center; color: #ffffff; letter-spacing: 0.1em; position: relative; display: inline-block; left: 50%; transform: translateX(-50%); }
+        .poem-title::after { content: ''; position: absolute; bottom: -10px; left: 25%; width: 50%; height: 1px; background: linear-gradient(90deg, transparent, var(--accent-silver), transparent); }
+        .poem-text { font-size: 1.15rem; line-height: 2; color: var(--text-main); text-align: center; }
+        .poem-text p { margin-bottom: 1.8rem; }
+        .poem-divider { margin-top: 2.5rem; color: var(--text-muted); font-size: 0.8rem; letter-spacing: 0.5em; opacity: 0.6; text-align: center; }
+
+        .final-chapter { font-size: 1.2rem; letter-spacing: 0.3em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 2rem; text-align: center; }
+        .final-name { font-size: 4rem; color: #ffffff; text-align: center; letter-spacing: 0.05em; opacity: 0; }
+        .reveal.active .final-name { animation: cinematic-breathe 3.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; animation-delay: 0.3s; }
+        @keyframes cinematic-breathe { 0% { letter-spacing: 0.05em; opacity: 0; filter: blur(10px); transform: scale(0.95); } 100% { letter-spacing: 0.15em; opacity: 1; filter: blur(0); transform: scale(1); } }
+
+        /* Special Button */
+        .special-btn {
+            margin-top: 3.5rem; padding: 1rem 3rem; background: transparent; border: 1px solid var(--border-glass);
+            color: var(--accent-silver); font-family: 'Montserrat', sans-serif; font-size: 0.75rem; letter-spacing: 0.25em;
+            text-transform: uppercase; border-radius: 40px; transition: all 0.5s ease; position: relative; overflow: hidden;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.02); backdrop-filter: blur(5px);
+        }
+        .special-btn:hover { background: rgba(255, 255, 255, 0.05); border-color: var(--accent-silver); box-shadow: 0 0 30px rgba(255, 255, 255, 0.1); transform: translateY(-3px); }
+
+        /* Credit Section */
+        .credit-section { margin-top: 8rem; text-align: center; display: flex; flex-direction: column; gap: 0.5rem; opacity: 0.2; transition: opacity 0.5s ease, transform 0.5s ease; }
+        .credit-section:hover { opacity: 1; transform: translateY(-2px); }
+        .credit-label { font-size: 0.65rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--text-muted); font-family: 'Montserrat', sans-serif; }
+        .credit-name { font-size: 0.9rem; letter-spacing: 0.1em; color: var(--accent-silver); font-family: 'Cormorant Garamond', serif; font-style: italic; }
+        .credit-sub { font-family: 'Montserrat', sans-serif; font-size: 0.6rem; font-style: normal; letter-spacing: 0.15em; color: #555; margin-top: 0.2rem; text-transform: uppercase; }
+
+        /* Secret Screen with Typing Effect */
+        #secret-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; background-color: #010102;
+            z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: opacity 2s ease, visibility 2s ease;
+        }
+        #secret-screen.visible { opacity: 1; visibility: visible; }
+
+        .secret-text { font-size: 2.2rem; color: #ffffff; letter-spacing: 0.15em; text-align: center; text-shadow: var(--glow-subtle); height: 2.5rem; }
+        .secret-subtext { font-family: 'Montserrat', sans-serif; font-size: 0.8rem; color: var(--text-muted); margin-top: 1.5rem; letter-spacing: 0.3em; height: 1rem; }
+        
+        .typing-cursor {
+            display: inline-block; width: 2px; height: 1em; background-color: #fff;
+            animation: blink 0.75s step-end infinite; vertical-align: text-bottom; margin-left: 5px;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .envelope-wrapper { width: 280px; height: 180px; }
+            .letter h3 { font-size: 1.5rem; }
+            .poem-container { padding: 3rem 1.5rem; }
+            .poem-title { font-size: 1.6rem; }
+            .poem-text { font-size: 1.05rem; }
+            .final-name { font-size: 2.8rem; }
+            .message-text { font-size: 0.95rem; }
+            .secret-text { font-size: 1.5rem; }
+            .secret-subtext { font-size: 0.6rem; }
+            body, html, a, button, .envelope-wrapper { cursor: auto !important; }
+        }
+        @media (max-width: 360px) {
+            .envelope-wrapper { width: 250px; height: 160px; }
+            .poem-title { font-size: 1.4rem; }
+            .poem-text { font-size: 0.95rem; }
+            .final-name { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-audio" loop>
+        <!-- LAGU SAY YES DISINI -->
+        <source src="say_yes.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="noise-overlay"></div>
+    <div class="ambient-glow"></div>
+    <div class="ambient-glow two"></div>
+    <canvas id="star-canvas"></canvas>
+    <canvas id="confetti-canvas"></canvas>
+    <canvas id="visualizer-canvas"></canvas>
+
+    <div id="opening-screen">
+        <div class="envelope-wrapper" id="envelope-btn">
+            <div class="envelope">
+                <div class="flap"></div>
+                <div class="letter">
+                    <p>A little note for</p>
+                    <h3 class="serif text-glow">AWAA</h3>
+                    <span class="micro-text">VOL. 2026 // Special Delivery</span>
+                </div>
+                <div class="seal">Open</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scroll-indicator" id="scroll-indicator">
+        Scroll
+        <div class="scroll-arrow"></div>
+    </div>
+
+    <div id="main-content">
+        <section id="message-section">
+            <div class="message-text">
+                <p class="reveal">Di umur yang baru ini, semoga kamu selalu dikelilingi hal-hal baik dan orang-orang yang tulus. Semoga semua yang selama ini kamu perjuangkan perlahan menemukan hasil yang selama ini kamu harapkan.</p>
+                <p class="reveal" style="transition-delay: 0.2s;">Tetap jadi kamu yang sekarang, dengan caramu sendiri dalam menjalani semuanya. Semoga kamu selalu punya alasan untuk tersenyum, cukup kuat saat hari terasa berat, dan punya banyak momen kecil yang membuat hari-harimu terasa lebih berarti.</p>
+                <p class="reveal" style="transition-delay: 0.4s;">Semoga tahun ini membawa lebih banyak tenang, lebih banyak bahagia, dan lebih banyak hal yang pantas kamu syukuri. Semoga satu per satu hal yang kamu semogakan menemukan jalannya untuk menjadi nyata.</p>
+                <p class="serif reveal" style="font-size: 1.4rem; color: #ffffff; margin-top: 3.5rem; transition-delay: 0.6s;">Happy birthday, Awaa.</p>
+            </div>
+        </section>
+
+        <section id="poem-section">
+            <div class="poem-container reveal" id="poem-box">
+                <h2 class="poem-title serif">Untuk Tahun yang Baru</h2>
+                <div class="poem-text serif">
+                   <p>Di hari bertambahnya usiamu,<br>
+                    semoga dunia terasa sedikit lebih ramah,<br>
+                    langkahmu menemukan arah yang baik,<br>
+                    dan hal-hal yang melelahkan perlahan menemukan akhirnya.</p>
+                  
+                    <p>Semoga setiap lelah menemukan jedanya,<br>
+                    setiap doa menemukan jalannya,<br>
+                    dan setiap usaha yang kamu jaga<br>
+                    akhirnya sampai pada sesuatu yang kamu banggakan.</p>
+
+                    <p>Jangan kehilangan caramu menjadi diri sendiri,<br>
+                    sebab ada hal-hal sederhana dalam dirimu<br>
+                    yang membuatmu berbeda,<br>
+                    tanpa perlu berusaha menjadi siapa-siapa.</p>
+
+                    <p>Selamat bertambah usia.</p>
+
+                    <p style="margin-bottom: 0;">Semoga halaman berikutnya<br>
+                    membawa cerita yang lebih baik<br>
+                    daripada halaman-halaman sebelumnya.</p>
+                    
+                    <div class="poem-divider">✦ ✦ ✦</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="final-section">
+            <div class="reveal">
+                <div class="final-chapter">Here's to another chapter.</div>
+                <h1 class="final-name text-glow serif">Happy Birthday, Awaa.</h1>
+                
+                <div class="reveal" style="text-align: center; margin-top: 1rem; transition-delay: 0.8s;">
+                    <button id="next-chapter-btn" class="special-btn">One More Thing</button>
+                </div>
+
+                <!-- Epic Credit Title -->
+                <div class="credit-section reveal" style="transition-delay: 1.2s;">
+                    <span class="credit-label">Credit</span>
+                    <span class="credit-name">Ashen Reverie</span>
+                    <span class="credit-sub">aka my real name (Aditya Fhaturohman) you just can call me Adit</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="secret-screen">
+        <h2 class="secret-text serif" id="type-title"></h2>
+        <p class="secret-subtext" id="type-sub"></p>
+    </div>
+
+    <script>
+        // DOM Elements
+        const envelopeBtn = document.getElementById('envelope-btn');
+        const openingScreen = document.getElementById('opening-screen');
+        const mainContent = document.getElementById('main-content');
+        const scrollIndicator = document.getElementById('scroll-indicator');
+        const bgAudio = document.getElementById('bg-audio');
+        const nextChapterBtn = document.getElementById('next-chapter-btn');
+        const secretScreen = document.getElementById('secret-screen');
+        const poemBox = document.getElementById('poem-box');
+        
+        let mouseX = 0, mouseY = 0, targetX = 0, targetY = 0;
+        let screenMouseX = -1000, screenMouseY = -1000; // For constellation distance
+
+        // Reveal Observer
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealOnScroll = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('active');
+            });
+        }, { threshold: 0.2, rootMargin: "0px 0px -50px 0px" });
+
+        // --- Web Audio API Visualizer ---
+        let audioCtx, analyser, dataArray;
+        const visCanvas = document.getElementById('visualizer-canvas');
+        const visCtx = visCanvas.getContext('2d');
+
+        function initAudio() {
+            if(audioCtx) return; 
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                const source = audioCtx.createMediaElementSource(bgAudio);
+                source.connect(analyser);
+                analyser.connect(audioCtx.destination);
+                analyser.fftSize = 256;
+                const bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                visCanvas.classList.add('active');
+                drawVisualizer();
+            } catch(e) { console.log("Audio visualizer skipped due to context error", e); }
+        }
+
+        function drawVisualizer() {
+            requestAnimationFrame(drawVisualizer);
+            if(!analyser) return;
+            
+            visCanvas.width = window.innerWidth;
+            visCanvas.height = 80;
+            analyser.getByteFrequencyData(dataArray);
+            
+            visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
+            const barWidth = (visCanvas.width / dataArray.length) * 2.5;
+            let x = 0;
+
+            for(let i = 0; i < dataArray.length; i++) {
+                const barHeight = (dataArray[i] / 255) * visCanvas.height;
+                // Elegant thin lines
+                visCtx.fillStyle = `rgba(255, 255, 255, ${0.05 + (dataArray[i]/255) * 0.3})`;
+                visCtx.fillRect(x, visCanvas.height - barHeight, barWidth - 1, barHeight);
+                x += barWidth;
+            }
+        }
+
+        // --- Envelope Opening Sequence ---
+        envelopeBtn.addEventListener('click', () => {
+            // Setup Audio & Visualizer on First User Interaction
+            bgAudio.volume = 0.5;
+            bgAudio.play().catch(e => console.log("Audio autoplay prevented"));
+            initAudio();
+
+            envelopeBtn.classList.add('is-opening');
+            setTimeout(() => {
+                envelopeBtn.classList.add('fade-out');
+                openingScreen.style.opacity = '0';
+                
+                setTimeout(() => {
+                    openingScreen.style.display = 'none';
+                    mainContent.classList.add('visible');
+                    scrollIndicator.classList.add('visible');
+                    revealElements.forEach(el => revealOnScroll.observe(el));
+                    fireConfetti();
+                    window.scrollTo(0, 0);
+                }, 1000);
+            }, 2000); 
+        });
+
+        // --- Dynamic Glass Spotlight ---
+        function updateSpotlight(e, isTouch = false) {
+            const rect = poemBox.getBoundingClientRect();
+            const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+            const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+            poemBox.style.setProperty('--mouse-x', `${x}px`);
+            poemBox.style.setProperty('--mouse-y', `${y}px`);
+        }
+        poemBox.addEventListener('mousemove', (e) => updateSpotlight(e, false));
+        poemBox.addEventListener('touchmove', (e) => updateSpotlight(e, true), {passive: true});
+
+        // --- Typing Magic Function ---
+        function typeWriter(element, text, speed, callback) {
+            element.innerHTML = '<span class="typed"></span><span class="typing-cursor"></span>';
+            const typedSpan = element.querySelector('.typed');
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    typedSpan.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                } else if (callback) {
+                    element.querySelector('.typing-cursor').style.display = 'none'; // hide cursor after done
+                    callback();
+                }
+            }
+            type();
+        }
+
+        // Secret Screen Trigger
+        nextChapterBtn.addEventListener('click', () => {
+            secretScreen.classList.add('visible');
+            
+            // Fade out Audio
+            let vol = bgAudio.volume;
+            let fadeOut = setInterval(() => {
+                if (vol > 0.05) { vol -= 0.05; bgAudio.volume = vol.toFixed(2); } 
+                else { clearInterval(fadeOut); }
+            }, 200);
+
+            // Trigger typing effect after screen fades in
+            setTimeout(() => {
+                const titleEl = document.getElementById('type-title');
+                const subEl = document.getElementById('type-sub');
+                typeWriter(titleEl, "The best is yet to come.", 100, () => {
+                    // Start subtitle after title finishes
+                    setTimeout(() => {
+                        typeWriter(subEl, "STAY TUNED // SEBUAH KEJUTAN MENANTI", 60);
+                    }, 500);
+                });
+            }, 1000);
+        });
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                scrollIndicator.style.opacity = '0';
+                setTimeout(() => { scrollIndicator.style.display = 'none'; }, 1000);
+            }
+        }, { once: false });
+
+        // --- Interactive Constellation Starfield ---
+        const starCanvas = document.getElementById('star-canvas');
+        const ctxStar = starCanvas.getContext('2d');
+        let stars = [];
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth / 2) * 0.05;
+            mouseY = (e.clientY - window.innerHeight / 2) * 0.05;
+            screenMouseX = e.clientX;
+            screenMouseY = e.clientY;
+        });
+        window.addEventListener('touchmove', (e) => {
+            mouseX = (e.touches[0].clientX - window.innerWidth / 2) * 0.05;
+            mouseY = (e.touches[0].clientY - window.innerHeight / 2) * 0.05;
+            screenMouseX = e.touches[0].clientX;
+            screenMouseY = e.touches[0].clientY;
+        }, {passive: true});
+
+        function initStars() {
+            starCanvas.width = window.innerWidth;
+            starCanvas.height = window.innerHeight;
+            stars = [];
+            const numStars = Math.floor((window.innerWidth * window.innerHeight) / 4500); 
+            
+            for (let i = 0; i < numStars; i++) {
+                stars.push({
+                    x: Math.random() * starCanvas.width,
+                    y: Math.random() * starCanvas.height,
+                    z: Math.random() * 2 + 0.5,
+                    radius: Math.random() * 1.5 + 0.2,
+                    opacity: Math.random(),
+                    speedOpacity: (Math.random() * 0.015) + 0.005,
+                    direction: Math.random() > 0.5 ? 1 : -1
+                });
+            }
+        }
+
+        function animateStars() {
+            ctxStar.clearRect(0, 0, starCanvas.width, starCanvas.height);
+            targetX += (mouseX - targetX) * 0.1;
+            targetY += (mouseY - targetY) * 0.1;
+
+            stars.forEach((star, index) => {
+                star.opacity += star.speedOpacity * star.direction;
+                if (star.opacity >= 1 || star.opacity <= 0.1) star.direction *= -1;
+                
+                let driftX = star.x - (targetX * star.z);
+                let driftY = star.y - (targetY * star.z) - (0.5 * star.z); 
+                
+                if (driftY < 0) star.y = starCanvas.height + (targetY * star.z);
+                if (driftX < 0) star.x = starCanvas.width + (targetX * star.z);
+                if (driftX > starCanvas.width) star.x = 0 + (targetX * star.z);
+
+                const finalX = driftX;
+                const finalY = driftY;
+
+                // Drawing Star
+                ctxStar.beginPath();
+                ctxStar.arc(finalX, finalY, star.radius, 0, Math.PI * 2);
+                ctxStar.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                ctxStar.fill();
+
+                // CONSTELLATION LOGIC: Connect if near mouse
+                const distToMouse = Math.hypot(finalX - screenMouseX, finalY - screenMouseY);
+                if (distToMouse < 150) {
+                    for (let j = index + 1; j < stars.length; j++) {
+                        const other = stars[j];
+                        const otherX = other.x - (targetX * other.z);
+                        const otherY = other.y - (targetY * other.z) - (0.5 * other.z);
+                        const distToOther = Math.hypot(finalX - otherX, finalY - otherY);
+                        
+                        if (distToOther < 80) {
+                            ctxStar.beginPath();
+                            ctxStar.moveTo(finalX, finalY);
+                            ctxStar.lineTo(otherX, otherY);
+                            ctxStar.strokeStyle = `rgba(255, 255, 255, ${0.15 - (distToOther/80)*0.15})`;
+                            ctxStar.lineWidth = 0.5;
+                            ctxStar.stroke();
+                        }
+                    }
+                }
+            });
+            requestAnimationFrame(animateStars);
+        }
+
+        // --- Elegant Glowing Confetti ---
+        const confCanvas = document.getElementById('confetti-canvas');
+        const ctxConf = confCanvas.getContext('2d');
+        let particles = [];
+        let isConfettiActive = false;
+
+        function fireConfetti() {
+            confCanvas.width = window.innerWidth;
+            confCanvas.height = window.innerHeight;
+            particles = [];
+            isConfettiActive = true;
+
+            const colors = ['#ffffff', '#e4e4e7', '#a1a1aa', '#52525b'];
+            for (let i = 0; i < 60; i++) {
+                particles.push({
+                    x: window.innerWidth / 2, y: window.innerHeight + 50,
+                    r: Math.random() * 3 + 1.5, dx: Math.random() * 12 - 6, dy: Math.random() * -15 - 12,
+                    color: colors[Math.floor(Math.random() * colors.length)], tilt: Math.random() * 10 - 10,
+                    tiltAngleIncrement: (Math.random() * 0.05) + 0.02, tiltAngle: 0,
+                    shape: Math.random() > 0.5 ? 'circle' : 'rect'
+                });
+            }
+            animateConfetti();
+        }
+
+        function animateConfetti() {
+            if (!isConfettiActive) return;
+            requestAnimationFrame(animateConfetti);
+            ctxConf.clearRect(0, 0, confCanvas.width, confCanvas.height);
+            let allDead = true;
+
+            particles.forEach(p => {
+                p.tiltAngle += p.tiltAngleIncrement; p.y += p.dy; p.x += Math.sin(p.tiltAngle) * 2 + p.dx; p.dy += 0.2; p.dx *= 0.99; 
+                if (p.y <= confCanvas.height) allDead = false;
+
+                ctxConf.beginPath(); ctxConf.lineWidth = p.r; ctxConf.strokeStyle = p.color; ctxConf.fillStyle = p.color;
+                if (p.shape === 'circle') {
+                    ctxConf.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctxConf.fill();
+                } else {
+                    ctxConf.save(); ctxConf.translate(p.x, p.y); ctxConf.rotate(p.tiltAngle);
+                    ctxConf.rect(-p.r, -p.r, p.r * 2, p.r * 2); ctxConf.fill(); ctxConf.restore();
+                }
+            });
+            if (allDead) { isConfettiActive = false; ctxConf.clearRect(0, 0, confCanvas.width, confCanvas.height); }
+        }
+
+        window.addEventListener('resize', () => {
+            initStars();
+            if (isConfettiActive) { confCanvas.width = window.innerWidth; confCanvas.height = window.innerHeight; }
+            if (visCanvas) { visCanvas.width = window.innerWidth; }
+        });
+
+        window.onload = function() {
+            window.scrollTo(0, 0);
+            initStars();
+            animateStars();
+        };
+
+    </script>
+</body>
+</html>
